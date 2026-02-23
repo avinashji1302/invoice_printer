@@ -82,9 +82,12 @@ class InvoiceProvider extends ChangeNotifier {
     debugPrint("===== ADD INVOICE END =====");
   }
 
-  Future<void> removeInvoice(int id) async {
-    await _repository.deleteInvoice(id);
-    await loadInvoices();
+
+
+  void removeItem(int index){
+    _invoices.removeAt(index);
+
+    notifyListeners();
   }
 
   Future<void> savePdf(BuildContext context) async {
