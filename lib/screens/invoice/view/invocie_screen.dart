@@ -1,9 +1,14 @@
 import 'package:app/core/common/common_text_field.dart';
+import 'package:app/core/constants/app_colors.dart';
 import 'package:app/screens/invoice/model/invocie_model.dart';
+
 import 'package:app/screens/invoice/view/invoice_preview_screen.dart';
 import 'package:app/screens/invoice/view_model/invoice_provider.dart';
+import 'package:app/screens/invoice/widgets/add_item.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+
 
 class CreateInvoiceScreen extends StatelessWidget {
   const CreateInvoiceScreen({super.key});
@@ -11,137 +16,227 @@ class CreateInvoiceScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<InvoiceProvider>();
-   final grnadTotal = provider.invoicesItems.fold<int>(
-  0,
-  (sum, item) {
-    final price = int.tryParse(item.price) ?? 0;
-    final quantity = int.tryParse(item.quantity) ?? 0;
-    return sum + (price * quantity);
-  },
-);
+
+    final grandTotal = provider.invoicesItems.fold<double>(
+      0,
+      (sum, item) {
+        final price = double.tryParse(item.price) ?? 0.0;
+        final quantity = double.tryParse(item.quantity) ?? 0.0;
+        return sum + (price * quantity);
+      },
+    );
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Create Invoice"), centerTitle: true),
+      backgroundColor: AppColors.background,
+
+      appBar: AppBar(
+        title: const Text("Create Invoice"),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: AppColors.background,
+        foregroundColor: AppColors.textPrimary,
+      ),
+
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /// ---------------- CLIENT INFO ----------------
-              const SectionTitle(title: "Client Information"),
-              const SizedBox(height: 12),
 
-              CustomTextField(
-                hint: "Client Name",
-                controller: provider.cutomerNmae,
+          child: Column(
+            children: [
+
+              /// CLIENT CARD
+              _card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+
+                    const _sectionTitle("Client Information"),
+
+                    const SizedBox(height: 12),
+
+                    CustomTextField(
+                      hint: "Customer Name",
+                      controller: provider.cutomerNmae,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    CustomTextField(
+                      hint: "Customer Phone",
+                      controller: provider.phoneController,
+                      textInputType: TextInputType.phone,
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
-              CustomTextField(
-                hint: "Client Phone",
-                controller: provider.phoneController,
-              ),
-              SizedBox(
-                height: 198,
-                child: ListView.builder(
-                  itemCount: provider.invoicesItems.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final invoiceItem = provider.invoicesItems[index];
-                    final price = int.tryParse(invoiceItem.price) ?? 0;
-                    final quantity = int.tryParse(invoiceItem.quantity) ?? 0;
-                    final totalPrice = quantity * price;
-                    // grnadTotal=grnadTotal+totalPrice;
-                    return Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        children: [
-                          Expanded(flex: 2, child: Text(invoiceItem.name)),
-                          Expanded(
+
+              const SizedBox(height: 16),
+
+              /// ITEMS CARD
+              _card(
+                child: Column(
+                  children: [
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const _sectionTitle("Items"),
+
+                        TextButton.icon(
+                          onPressed: () {
+                            showAddItemDialog(context, provider);
+                          },
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text("Add"),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    provider.invoicesItems.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.all(16),
                             child: Text(
-                              "${invoiceItem.quantity} × ${invoiceItem.price}",
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              "₹ $totalPrice",
-                              textAlign: TextAlign.right,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                              "No items added",
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
                               ),
                             ),
+                          )
+                        : ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: provider.invoicesItems.length,
+                            separatorBuilder: (_, __) =>
+                                const Divider(height: 20),
+                            itemBuilder: (_, index) {
+
+                              final item =
+                                  provider.invoicesItems[index];
+
+                              final price =
+                                  double.tryParse(item.price) ?? 0.0;
+
+                              final quantity =
+                                  double.tryParse(item.quantity) ?? 0.0;
+
+                              final total =
+                                  price * quantity;
+
+                              return Row(
+                                children: [
+
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      item.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+
+                                  Expanded(
+                                    child: Text(
+                                      "$quantity × ₹$price",
+                                      style: const TextStyle(
+                                        color:
+                                            AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+
+                                  Expanded(
+                                    child: Text(
+                                      "₹$total",
+                                      textAlign: TextAlign.right,
+                                      style: const TextStyle(
+                                        fontWeight:
+                                            FontWeight.bold,
+                                        color:
+                                            AppColors.success,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
-                        ],
-                      ),
-                    );
-                  },
+                  ],
                 ),
               ),
-              const SizedBox(height: 12),
 
+              const SizedBox(height: 16),
+
+              /// TOTAL CARD
+              _card(
+                child: Row(
+                  mainAxisAlignment:
+                      MainAxisAlignment.spaceBetween,
+                  children: [
+
+                    const Text(
+                      "Grand Total",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+
+                    Text(
+                      "₹ $grandTotal",
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.success,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              /// SAVE BUTTON
               SizedBox(
                 width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    showAddItemDialog(context, provider);
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text("Add Item"),
-                ),
-              ),
+                height: 54,
 
-              const SizedBox(height: 24),
-
-              // /// ---------------- CHARGES ----------------
-              // const SectionTitle(title: "Charges"),
-              // const SizedBox(height: 12),
-
-              // const CustomTextField(hint: "GST (%)"),
-              // const SizedBox(height: 12),
-              // const CustomTextField(hint: "Discount"),
-              const SizedBox(height: 24),
-
-              /// ---------------- TOTAL ----------------
-              const Divider(),
-              const SizedBox(height: 12),
-
-               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Total",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    "₹ $grnadTotal",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(12),
                     ),
                   ),
-                ],
-              ),
-
-              const SizedBox(height: 32),
-
-              /// ---------------- SAVE BUTTON ----------------
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
                   onPressed: () {
-                    // provider.addInvoice();
-                    Navigator.of(context).push(
+
+                    Navigator.push(
+                      context,
                       MaterialPageRoute(
-                        builder: (context) => InvoicePreviewScreen(
-                          items: provider.invoicesItems,
-                          customerNamer: provider.cutomerNmae.text,
-                          phoneNumber: provider.phoneController.text,
-                          grnadTotal:grnadTotal
+                        builder: (_) =>
+                            InvoicePreviewScreen(
+                          items:
+                              provider.invoicesItems,
+                          customerNamer:
+                              provider.cutomerNmae.text,
+                          phoneNumber:
+                              provider.phoneController.text,
+                          grnadTotal: grandTotal,
                         ),
                       ),
                     );
                   },
-                  child: const Text("Save Invoice"),
+
+                  child: const Text(
+                    "Preview Invoice",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -150,78 +245,40 @@ class CreateInvoiceScreen extends StatelessWidget {
       ),
     );
   }
+
+
+  
+
+  Widget _card({required Widget child}) {
+    return Container(
+      width: double.infinity,
+
+      padding: const EdgeInsets.all(16),
+
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+
+      child: child,
+    );
+  }
 }
 
-/// ---------------- REUSABLE WIDGETS ----------------
-
-class SectionTitle extends StatelessWidget {
+class _sectionTitle extends StatelessWidget {
   final String title;
-  const SectionTitle({super.key, required this.title});
+  const _sectionTitle(this.title);
 
   @override
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      style: const TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+      ),
     );
   }
 }
 
-void showAddItemDialog(BuildContext context, InvoiceProvider provider) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text("Add Item"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomTextField(hint: "Item Name", controller: provider.itemName),
-
-            const SizedBox(height: 12),
-            CustomTextField(
-              hint: "Price",
-              controller: provider.priceConttroller,
-              textInputType: TextInputType.number,
-            ),
-            const SizedBox(height: 12),
-
-            CustomTextField(
-              hint: "Quantity",
-              controller: provider.numberOfItem,
-              textInputType: TextInputType.number,
-            ),
-          ],
-        ),
-
-        actions: [
-          /// Cancel Button
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text("Cancel"),
-          ),
-
-          /// Submit Button
-          ElevatedButton(
-            onPressed: () {
-              final item = InvoiceItem(
-                name: provider.itemName.text,
-                price: provider.priceConttroller.text,
-                quantity: provider.numberOfItem.text,
-              );
-
-              provider.addItem(item);
-             provider.itemName.clear();
-              provider.priceConttroller.clear();
-               provider.numberOfItem.clear();
-              Navigator.pop(context);
-            },
-            child: const Text("Submit"),
-          ),
-        ],
-      );
-    },
-  );
-}

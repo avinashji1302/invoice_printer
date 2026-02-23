@@ -1,4 +1,5 @@
-import 'package:app/core/helper/pdf_generate.dart';
+import 'package:app/core/common/top_sncbar.dart';
+
 import 'package:app/core/helper/pdf_generate.dart' as InvoicePdfService;
 import 'package:app/screens/home/view/home_page.dart';
 import 'package:app/screens/invoice/model/invocie_model.dart';
@@ -7,11 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class InvoicePreviewScreen extends StatelessWidget {
-  List<InvoiceItem> items;
-  String customerNamer;
-  String phoneNumber;
-  int grnadTotal;
-  InvoicePreviewScreen({
+  final List<InvoiceItem> items;
+  final String customerNamer;
+  final String phoneNumber;
+  final double grnadTotal;
+
+  const InvoicePreviewScreen({
     super.key,
     required this.items,
     required this.customerNamer,
@@ -21,154 +23,270 @@ class InvoicePreviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<InvoiceProvider>();
-    int gst = 500;
-    int totalWithGST = grnadTotal + 500;
-     provider.totalMoney= totalWithGST.toString();
+    final provider = context.read<InvoiceProvider>();
+
+    final gst = 0.0;
+    final totalWithGST = grnadTotal.toDouble() + gst.toDouble();
+
+    provider.totalMoney = totalWithGST.toString();
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Invoice Preview")),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "QuickBill",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 5),
-              Text("Phone: $phoneNumber"),
-              const Divider(height: 30),
+      backgroundColor: const Color(0xffF8FAFC),
 
-              const Text(
-                "Bill To:",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 5),
-              Text(customerNamer),
-              const SizedBox(height: 20),
+      appBar: AppBar(
+        title: const Text("Invoice Preview"),
+        centerTitle: true,
+        elevation: 0,
+      ),
 
-              const Text(
-                "Items",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
 
-              SizedBox(
-                height: 198,
-                child: ListView.builder(
-                  itemCount: items.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final invoiceItem = items[index];
-                    final price = int.tryParse(invoiceItem.price) ?? 0;
-                    final quantity = int.tryParse(invoiceItem.quantity) ?? 0;
-                    final totalPrice = quantity * price;
+        child: Column(
+          children: [
+            /// INVOICE CARD
+            Expanded(
+              child: Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
 
-                    grnadTotal = grnadTotal + totalPrice;
-                    return Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        children: [
-                          Expanded(flex: 2, child: Text(invoiceItem.name)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      /// APP NAME
+                      const Text(
+                        "QuickBill",
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 4),
+
+                      Text(
+                        "Phone: $phoneNumber",
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+
+                      const Divider(height: 30),
+
+                      /// CUSTOMER
+                      const Text(
+                        "Bill To",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+
+                      const SizedBox(height: 4),
+
+                      Text(
+                        customerNamer,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      /// ITEMS HEADER
+                      Row(
+                        children: const [
                           Expanded(
+                            flex: 2,
                             child: Text(
-                              "${invoiceItem.quantity} × ${invoiceItem.price}",
+                              "Item",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey,
+                              ),
                             ),
                           ),
                           Expanded(
                             child: Text(
-                              "₹ $totalPrice",
-                              textAlign: TextAlign.right,
-                              style: const TextStyle(
+                              "Qty x Price",
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              "Total",
+                              textAlign: TextAlign.right,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey,
                               ),
                             ),
                           ),
                         ],
                       ),
-                    );
-                  },
-                ),
-              ),
 
-              const Divider(),
+                      const SizedBox(height: 10),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("Subtotal"),
-                  Text("₹ ${grnadTotal.toString()}"),
-                ],
-              ),
-              const SizedBox(height: 5),
+                      /// ITEMS LIST
+                      Flexible(
+                        child: ListView.builder(
+                          itemCount: items.length,
+                          itemBuilder: (_, index) {
+                            final item = items[index];
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [Text("GST"), Text("₹ $gst")],
-              ),
+                            final price = double.tryParse(item.price) ?? 0;
 
-              const Divider(height: 30),
+                            final quantity = double.tryParse(item.quantity) ?? 0;
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Total",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            final total = price * quantity;
+
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+
+                              child: Row(
+                                children: [
+                                  Expanded(flex: 2, child: Text(item.name)),
+
+                                  Expanded(child: Text("$quantity x $price")),
+
+                                  Expanded(
+                                    child: Text(
+                                      "₹ $total",
+                                      textAlign: TextAlign.right,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      const Divider(),
+
+                      /// SUBTOTAL
+                      _priceRow(title: "Subtotal", value: "₹ $grnadTotal"),
+
+                      const SizedBox(height: 6),
+
+                      /// GST
+                      _priceRow(title: "GST", value: "₹ $gst"),
+
+                      const Divider(height: 30),
+
+                      /// FINAL TOTAL
+                      _priceRow(
+                        title: "Total",
+                        value: "₹ $totalWithGST",
+                        isBold: true,
+                        isGreen: true,
+                      ),
+                    ],
                   ),
-                  Text(
-                    "₹ $totalWithGST",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            /// BUTTONS
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () async {
+                    
+                      await InvoicePdfService.InvoicePdfService.saveAndOpen(
+                        items: provider.invoicesItems,
+                        customerName: provider.cutomerNmae.text,
+                        phoneNumber: provider.phoneController.text,
+                      );
+
+                      await provider.addInvoice();
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const HomeScreen()),
+                        (_) => false,
+                      );
+
+                       AppSnackBar.show(context, message: "Saved in your download folder.." , backgroundColor: Colors.green);
+                    },
+                    child: const Text("Save"),
                   ),
-                ],
-              ),
-
-              const Spacer(),
-
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await InvoicePdfService.generateAndShare(
-                      items: items,
-                      customerName: customerNamer,
-                      phoneNumber: phoneNumber,
-                    );
-                    await provider.addInvoice();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => HomeScreen()),
-                    );
-                  },
-                  child: const Text("Generate PDF"),
                 ),
-              ),
 
-              SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await provider.addInvoice();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => HomeScreen()),
-                    );
-                  },
-                  child: const Text("Save"),
+                const SizedBox(width: 12),
+
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      // await provider.addInvoice();
+
+                      await InvoicePdfService.InvoicePdfService.shareToWhatsApp(
+                        items: provider.invoicesItems,
+                        customerName: provider.cutomerNmae.text,
+                        phoneNumber: provider.phoneController.text,
+                      );
+
+                      await provider.addInvoice();
+
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const HomeScreen()),
+                        (_) => false,
+                      );
+
+                     
+                    },
+                    child: const Text(" Share"),
+                  ),
                 ),
-              ),
-            ],
-          ),
+
+               
+              ],
+            ),
+             SizedBox(height: 20,),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _priceRow({
+    required String title,
+    required String value,
+    bool isBold = false,
+    bool isGreen = false,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            color: isGreen ? Colors.green : null,
+            fontSize: isBold ? 18 : 14,
+          ),
+        ),
+      ],
     );
   }
 }

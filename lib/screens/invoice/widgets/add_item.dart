@@ -1,80 +1,205 @@
+// import 'package:flutter/material.dart';
+
+// class AddItemBottomSheet extends StatelessWidget {
+//   const AddItemBottomSheet({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Padding(
+//       padding: EdgeInsets.only(
+//         left: 16,
+//         right: 16,
+//         top: 20,
+//         bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+//       ),
+//       child: SingleChildScrollView(
+//         child: Column(
+//           mainAxisSize: MainAxisSize.min,
+//           children: [
+
+//             /// Drag Indicator
+//             Container(
+//               width: 40,
+//               height: 5,
+//               decoration: BoxDecoration(
+//                 color: Colors.grey.shade300,
+//                 borderRadius: BorderRadius.circular(10),
+//               ),
+//             ),
+
+//             const SizedBox(height: 20),
+
+//             const Text(
+//               "Add Item",
+//               style: TextStyle(
+//                 fontSize: 18,
+//                 fontWeight: FontWeight.bold,
+//               ),
+//             ),
+
+//             const SizedBox(height: 20),
+
+//             _textField("Item Name"),
+//             const SizedBox(height: 12),
+
+//             _textField("Quantity", isNumber: true),
+//             const SizedBox(height: 12),
+
+//             _textField("Price", isNumber: true),
+
+//             const SizedBox(height: 25),
+
+//             SizedBox(
+//               width: double.infinity,
+//               height: 50,
+//               child: ElevatedButton(
+//                 onPressed: () {
+//                   Navigator.pop(context);
+//                 },
+//                 child: const Text("Add Item"),
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _textField(String hint, {bool isNumber = false}) {
+//     return TextField(
+//       keyboardType:
+//           isNumber ? TextInputType.number : TextInputType.text,
+//       decoration: InputDecoration(
+//         hintText: hint,
+//         border: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(12),
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+import 'package:app/core/common/common_text_field.dart';
+import 'package:app/screens/invoice/model/invocie_model.dart';
+import 'package:app/screens/invoice/view_model/invoice_provider.dart';
 import 'package:flutter/material.dart';
 
-class AddItemBottomSheet extends StatelessWidget {
-  const AddItemBottomSheet({super.key});
+void showAddItemDialog(BuildContext context, InvoiceProvider provider) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
 
-            /// Drag Indicator
-            Container(
-              width: 40,
-              height: 5,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(10),
+            children: [
+              /// TITLE
+              const Text(
+                "Add Item",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-            ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            const Text(
-              "Add Item",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+              /// ITEM NAME
+              CustomTextField(hint: "Item Name", controller: provider.itemName),
+
+              const SizedBox(height: 14),
+
+              /// QUANTITY
+              CustomTextField(
+                hint: "Quantity",
+                controller: provider.numberOfItem,
+                textInputType: TextInputType.number,
               ),
-            ),
+              const SizedBox(height: 14),
 
-            const SizedBox(height: 20),
-
-            _textField("Item Name"),
-            const SizedBox(height: 12),
-
-            _textField("Quantity", isNumber: true),
-            const SizedBox(height: 12),
-
-            _textField("Price", isNumber: true),
-
-            const SizedBox(height: 25),
-
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text("Add Item"),
+              /// PRICE
+              CustomTextField(
+                hint: "Price",
+                controller: provider.priceConttroller,
+                textInputType: TextInputType.number,
               ),
-            ),
-          ],
+
+              const SizedBox(height: 24),
+
+              /// BUTTONS
+              Row(
+                children: [
+                  /// CANCEL
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text("Cancel"),
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  /// ADD
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () {
+                        if (provider.itemName.text.isEmpty ||
+                            provider.priceConttroller.text.isEmpty ||
+                            provider.numberOfItem.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Please fill all fields"),
+                            ),
+                          );
+
+                          return;
+                        }
+
+                        final item = InvoiceItem(
+                          name: provider.itemName.text,
+                          price: provider.priceConttroller.text,
+                          quantity: provider.numberOfItem.text,
+                        );
+
+                        provider.addItem(item);
+
+                        /// CLEAR FIELDS
+                        provider.itemName.clear();
+                        provider.priceConttroller.clear();
+                        provider.numberOfItem.clear();
+
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        "Add Item",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _textField(String hint, {bool isNumber = false}) {
-    return TextField(
-      keyboardType:
-          isNumber ? TextInputType.number : TextInputType.text,
-      decoration: InputDecoration(
-        hintText: hint,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
-  }
+      );
+    },
+  );
 }
