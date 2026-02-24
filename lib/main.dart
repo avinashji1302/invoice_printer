@@ -1,11 +1,13 @@
+import 'package:app/core/premium/premium_controller.dart';
 import 'package:app/screens/home/view_model/home_provider.dart';
 import 'package:app/screens/invoice/view_model/invoice_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screens/home/view/home_page.dart';
 
-void main() {
+void main()  async{
   runApp(const MyApp());
+  await loadPremiumStatus();
 }
 
 class MyApp extends StatelessWidget {

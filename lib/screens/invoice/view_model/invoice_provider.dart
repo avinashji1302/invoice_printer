@@ -6,8 +6,7 @@ import 'package:app/screens/invoice/model/invocie_model.dart';
 import 'package:app/screens/invoice/repository/invoice_repository_imp.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
+
 import 'package:pdf/widgets.dart' as pw;
 
 class InvoiceProvider extends ChangeNotifier {
@@ -17,6 +16,8 @@ class InvoiceProvider extends ChangeNotifier {
   final numberOfItem = TextEditingController();
   final priceConttroller = TextEditingController();
   final itemName = TextEditingController();
+
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   String totalMoney = "";
   List<InvoiceModel> _invoices = [];
   List<InvoiceModel> get invoices => _invoices;
@@ -27,6 +28,16 @@ class InvoiceProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  bool checkValidation() {
+    if (formKey.currentState!.validate()) {
+      debugPrint("Validared");
+
+     return true;
+    }
+
+    return false;
+  }
+
   Future<void> loadInvoices() async {
     debugPrint("===== LOADING INVOICES =====");
 
@@ -34,6 +45,10 @@ class InvoiceProvider extends ChangeNotifier {
     notifyListeners();
 
     _invoices = await _repository.getAllInvoices();
+
+    if(invoices.length>30){
+      debugPrint("it is more than 30 now delte it");
+    }
 
     debugPrint("Total invoices loaded: ${_invoices.length}");
     debugPrint("Total invoices loaded: ${_invoices}");
@@ -82,42 +97,40 @@ class InvoiceProvider extends ChangeNotifier {
     debugPrint("===== ADD INVOICE END =====");
   }
 
-
-
-  void removeItem(int index){
+  void removeItem(int index) {
     _invoices.removeAt(index);
 
     notifyListeners();
   }
 
-  Future<void> savePdf(BuildContext context) async {
-    final pdf = pw.Document();
+  // Future<void> savePdf(BuildContext context) async {
+  //   final pdf = pw.Document();
 
-    /// Download folder path
-    final downloadDir = Directory("/storage/emulated/0/Download/QuickBill");
+  //   /// Download folder path
+  //   final downloadDir = Directory("/storage/emulated/0/Download/QuickBill");
 
-    /// Create folder if not exists
-    if (!await downloadDir.exists()) {
-      await downloadDir.create(recursive: true);
-    }
+  //   /// Create folder if not exists
+  //   if (!await downloadDir.exists()) {
+  //     await downloadDir.create(recursive: true);
+  //   }
 
-    /// File path
-    final file = File(
-      "${downloadDir.path}/invoice_${DateTime.now().millisecondsSinceEpoch}.pdf",
-    );
+  //   /// File path
+  //   final file = File(
+  //     "${downloadDir.path}/invoice_${DateTime.now().millisecondsSinceEpoch}.pdf",
+  //   );
 
-    /// Save file
-    await file.writeAsBytes(await pdf.save());
+  //   /// Save file
+  //   await file.writeAsBytes(await pdf.save());
 
-    print("PDF saved at: ${downloadDir}");
+  //   print("PDF saved at: ${downloadDir}");
 
-    /// Show snackbar with path
-    AppSnackBar.show(
-      context,
-      message: "PDF saved in $file",
-      backgroundColor: Colors.green,
-    );
+  //   /// Show snackbar with path
+  //   AppSnackBar.show(
+  //     context,
+  //     message: "PDF saved in $file",
+  //     backgroundColor: Colors.green,
+  //   );
 
-    await OpenFile.open(file.path);
-  }
+  //   await OpenFile.open(file.path);
+  // }
 }

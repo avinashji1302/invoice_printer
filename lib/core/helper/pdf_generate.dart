@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:app/core/helper/water_mark_widget.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
@@ -16,13 +17,13 @@ class InvoicePdfService {
 
     final pdf = pw.Document();
 
-    final subtotal = items.fold<int>(0, (sum, item) {
-      final price = int.tryParse(item.price) ?? 0;
-      final qty = int.tryParse(item.quantity) ?? 0;
+    final subtotal = items.fold<double>(0, (sum, item) {
+      final price = double.tryParse(item.price) ?? 0.0;
+      final qty = double.tryParse(item.quantity) ?? 0.0;
       return sum + price * qty;
     });
 
-    final gst = 500;
+    final gst = 0;
     final total = subtotal + gst;
     final invoiceNumber = DateTime.now().millisecondsSinceEpoch;
 
@@ -30,7 +31,9 @@ class InvoicePdfService {
       pw.Page(
         margin: const pw.EdgeInsets.all(24),
         build: (context) {
-          return pw.Column(
+          return  pw.Stack(
+            children: [
+          pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
 
@@ -107,8 +110,8 @@ class InvoicePdfService {
                   ),
 
                   ...items.map((item) {
-                    final price = int.tryParse(item.price) ?? 0;
-                    final qty = int.tryParse(item.quantity) ?? 0;
+                    final price = double.tryParse(item.price) ?? 0.0;
+                    final qty = double.tryParse(item.quantity) ?? 0.0;
                     final rowTotal = price * qty;
 
                     return pw.TableRow(
@@ -131,8 +134,8 @@ class InvoicePdfService {
                   width: 200,
                   child: pw.Column(
                     children: [
-                      _row("Subtotal", subtotal),
-                      _row("GST", gst),
+                      _row("Subtotal", subtotal.toDouble()),
+                      _row("GST", gst.toDouble()),
                       pw.Divider(),
                       _row("Total (Rs)", total, bold: true),
                     ],
@@ -151,7 +154,11 @@ class InvoicePdfService {
                 ),
               ),
             ],
-          );
+          ),
+
+          buildWatermark(),
+          
+          ]);
         },
       ),
     );
@@ -184,7 +191,7 @@ class InvoicePdfService {
   print("PDF saved at: ${file.path}");
 
   /// open PDF viewer
-  await OpenFile.open(file.path);
+  // await OpenFile.open(file.path);
 
   return file;
 }
@@ -201,7 +208,7 @@ class InvoicePdfService {
       phoneNumber: phoneNumber,
     );
 
-    // await Share.shareXFiles([XFile(file.path)]);
+    await Share.shareXFiles([XFile(file.path)]);
 
     final whatsapp = Uri.parse("https://wa.me/91$phoneNumber");
 
@@ -227,7 +234,7 @@ pw.Widget _cell(String text, {bool bold = false}) {
   );
 }
 
-pw.Widget _row(String title, int value, {bool bold = false}) {
+pw.Widget _row(String title, double value, {bool bold = false}) {
   return pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 4),
     child: pw.Row(
@@ -241,7 +248,7 @@ pw.Widget _row(String title, int value, {bool bold = false}) {
           ),
         ),
         pw.Text(
-          "$value",
+          value.toStringAsFixed(2),
           style: pw.TextStyle(
             fontWeight:
                 bold ? pw.FontWeight.bold : pw.FontWeight.normal,

@@ -28,7 +28,7 @@ class InvoicePreviewScreen extends StatelessWidget {
     final gst = 0.0;
     final totalWithGST = grnadTotal.toDouble() + gst.toDouble();
 
-    provider.totalMoney = totalWithGST.toString();
+    provider.totalMoney = totalWithGST.toStringAsFixed(2);
 
     return Scaffold(
       backgroundColor: const Color(0xffF8FAFC),
@@ -154,11 +154,11 @@ class InvoicePreviewScreen extends StatelessWidget {
                                 children: [
                                   Expanded(flex: 2, child: Text(item.name)),
 
-                                  Expanded(child: Text("$quantity x $price")),
+                                  Expanded(child: Text("${quantity} x ${price}")),
 
                                   Expanded(
                                     child: Text(
-                                      "₹ $total",
+                                      "₹ ${total.toStringAsFixed(2)}",
                                       textAlign: TextAlign.right,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w600,
@@ -175,7 +175,7 @@ class InvoicePreviewScreen extends StatelessWidget {
                       const Divider(),
 
                       /// SUBTOTAL
-                      _priceRow(title: "Subtotal", value: "₹ $grnadTotal"),
+                      _priceRow(title: "Subtotal", value: "₹ ${grnadTotal.toStringAsFixed(2)}"),
 
                       const SizedBox(height: 6),
 
@@ -187,7 +187,7 @@ class InvoicePreviewScreen extends StatelessWidget {
                       /// FINAL TOTAL
                       _priceRow(
                         title: "Total",
-                        value: "₹ $totalWithGST",
+                        value: "₹ ${totalWithGST.toStringAsFixed(2)}",
                         isBold: true,
                         isGreen: true,
                       ),
